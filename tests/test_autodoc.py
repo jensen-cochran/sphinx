@@ -10,8 +10,7 @@
     :license: BSD, see LICENSE for details.
 """
 
-# "raises" imported for usage by autodoc
-from util import TestApp, Struct, raises, SkipTest  # NOQA
+from util import SphinxTestApp, Struct, SkipTest  # NOQA
 import pytest
 
 import enum
@@ -26,7 +25,7 @@ app = None
 
 def setup_module():
     global app
-    app = TestApp()
+    app = SphinxTestApp()
     app.builder.env.app = app
     app.builder.env.temp_data['docname'] = 'dummy'
     app.connect('autodoc-process-docstring', process_docstring)
@@ -125,26 +124,27 @@ def test_parse_name():
     del _warnings[:]
 
     # for functions/classes
-    verify('function', 'util.raises', ('util', ['raises'], None, None))
-    verify('function', 'util.raises(exc) -> None',
-           ('util', ['raises'], 'exc', 'None'))
-    directive.env.temp_data['autodoc:module'] = 'util'
-    verify('function', 'raises', ('util', ['raises'], None, None))
+    verify('function', 'test_autodoc.raises',
+           ('test_autodoc', ['raises'], None, None))
+    verify('function', 'test_autodoc.raises(exc) -> None',
+           ('test_autodoc', ['raises'], 'exc', 'None'))
+    directive.env.temp_data['autodoc:module'] = 'test_autodoc'
+    verify('function', 'raises', ('test_autodoc', ['raises'], None, None))
     del directive.env.temp_data['autodoc:module']
-    directive.env.ref_context['py:module'] = 'util'
-    verify('function', 'raises', ('util', ['raises'], None, None))
-    verify('class', 'TestApp', ('util', ['TestApp'], None, None))
+    directive.env.ref_context['py:module'] = 'test_autodoc'
+    verify('function', 'raises', ('test_autodoc', ['raises'], None, None))
+    verify('class', 'Base', ('test_autodoc', ['Base'], None, None))
 
     # for members
     directive.env.ref_context['py:module'] = 'foo'
-    verify('method', 'util.TestApp.cleanup',
-           ('util', ['TestApp', 'cleanup'], None, None))
+    verify('method', 'util.SphinxTestApp.cleanup',
+           ('util', ['SphinxTestApp', 'cleanup'], None, None))
     directive.env.ref_context['py:module'] = 'util'
     directive.env.ref_context['py:class'] = 'Foo'
-    directive.env.temp_data['autodoc:class'] = 'TestApp'
-    verify('method', 'cleanup', ('util', ['TestApp', 'cleanup'], None, None))
-    verify('method', 'TestApp.cleanup',
-           ('util', ['TestApp', 'cleanup'], None, None))
+    directive.env.temp_data['autodoc:class'] = 'SphinxTestApp'
+    verify('method', 'cleanup', ('util', ['SphinxTestApp', 'cleanup'], None, None))
+    verify('method', 'SphinxTestApp.cleanup',
+           ('util', ['SphinxTestApp', 'cleanup'], None, None))
 
     # and clean up
     del directive.env.ref_context['py:module']
@@ -658,7 +658,7 @@ def test_generate():
                            'Class.meth', more_content=add_content)
 
     # test check_module
-    inst = FunctionDocumenter(directive, 'raises')
+    inst = FunctionDocumenter(directive, 'add_documenter')
     inst.generate(check_module=True)
     assert len(directive.result) == 0
 
@@ -876,6 +876,11 @@ __all__ = ['Class']
 
 #: documentation for the integer
 integer = 1
+
+
+def raises(exc, func, *args, **kwds):
+    """Raise AssertionError if ``func(*args, **kwds)`` does not raise *exc*."""
+    pass
 
 
 class CustomEx(Exception):
